@@ -13,6 +13,7 @@ fn main() {
         &probes,
         &target.join("target"),
         Vec::new(),
+        None,
     )
     .expect("couldn't compile probes");
 

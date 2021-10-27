@@ -1821,14 +1821,12 @@ impl<'base, K: Clone, V: Clone> HashMap<'base, K, V> {
         Some(unsafe { value.assume_init() })
     }
 
-    #[inline]
     pub fn delete(&self, mut key: K) {
         unsafe {
             bpf_sys::bpf_map_delete_elem(self.base.fd, &mut key as *mut _ as *mut _);
         }
     }
 
-    #[inline]
     pub fn iter<'a>(&'a self) -> MapIter<'a, '_, K, V> {
         MapIter {
             map: self,

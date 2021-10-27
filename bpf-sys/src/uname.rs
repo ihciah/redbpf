@@ -68,7 +68,7 @@ fn parse_version(version: &str) -> Option<(u32, u32, u32)> {
     if let Some(version) = version.splitn(2, '-').next() {
         if let Some(version) = version.splitn(2, '+').next() {
             let parts: Vec<_> = version.splitn(3, '.').filter_map(|v| u32::from_str(v).ok()).collect();
-            if parts.len() != 3 {
+            if parts.len() < 3 {
                 return None;
             }
             return Some((parts[0], parts[1], parts[2]))
@@ -88,7 +88,7 @@ mod test {
         assert_eq!(parse_version("4.15.1-generic"), Some((4, 15, 1)));
         assert_eq!(parse_version("4.15.1-generic-foo"), Some((4, 15, 1)));
         assert_eq!(parse_version("4.14.138+"), Some((4, 14, 138)));
-        assert_eq!(parse_version("4.3.2.1"), None);
+        assert_eq!(parse_version("4.3.2.1"), Some((4, 3, 2)));
         assert_eq!(parse_version("4.2.foo"), None);
         assert_eq!(parse_version("4.2."), None);
         assert_eq!(parse_version("4.2"), None);

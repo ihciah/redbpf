@@ -103,6 +103,7 @@ fn build_probe(
     target_dir: &Path,
     probe: &str,
     features: &Vec<String>,
+    overwrite_kernel_version: Option<(u8, u8)>,
 ) -> Result<(), Error> {
     fs::create_dir_all(&target_dir)?;
     let target_dir = target_dir.canonicalize().unwrap().join("bpf");
@@ -112,6 +113,13 @@ fn build_probe(
 
     let (env_name, env_value) = create_rustflags();
     let version = build_kernel_version()
+        .map(|mut v| {
+            if let Some((m, p)) = overwrite_kernel_version {
+                v.version = m;
+                v.patchlevel = p;
+            }
+            v
+        })
         .map(|mut v| {
             if v.version >= 5 && v.patchlevel >= 7 {
                 v.patchlevel = 7;
@@ -184,6 +192,7 @@ pub fn build(
     package: &Path,
     target_dir: &Path,
     mut probes: Vec<String>,
+    overwrite_kernel_version: Option<(u8, u8)>,
 ) -> Result<(), Error> {
     build_with_features(
         cargo,
@@ -191,6 +200,7 @@ pub fn build(
         target_dir,
         &mut probes,
         &vec![String::from("probes")],
+        overwrite_kernel_version,
     )
 }
 
@@ -200,6 +210,7 @@ pub fn build_with_features(
     target_dir: &Path,
     probes: &mut Vec<String>,
     features: &Vec<String>,
+    overwrite_kernel_version: Option<(u8, u8)>,
 ) -> Result<(), Error> {
     let path = package.join("Cargo.toml");
     if !path.exists() {
@@ -214,7 +225,7 @@ pub fn build_with_features(
     unsafe { llvm::init() };
 
     for probe in probes {
-        build_probe(cargo, package, &target_dir, &probe, &features)?;
+        build_probe(cargo, package, &target_dir, &probe, &features, overwrite_kernel_version)?;
     }
 
     Ok(())
@@ -227,6 +238,7 @@ pub fn cmd_build(programs: Vec<String>, target_dir: PathBuf) -> Result<(), Comma
         &current_dir,
         &target_dir,
         programs,
+        None,
     )?)
 }
 
